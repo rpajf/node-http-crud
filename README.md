@@ -1,4 +1,4 @@
-##Steps
+## Steps
 ### 1 - 
 Run `yarn` to install the dependencies
 ### 2 - 
