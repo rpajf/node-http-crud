@@ -13,6 +13,9 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "csv-generate": "^4.2.6",
+    "csv-parse": "^5.4.0",
+    "csv-stringify": "^6.4.0",
     "dotenv": "^16.3.1",
     "ts-node": "^10.9.1"
   }
