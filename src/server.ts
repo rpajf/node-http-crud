@@ -1,16 +1,16 @@
 import http from 'http';
 import { config } from 'dotenv';
 import { json, IncomingMessageWithBody } from './middlewares/json';
-import { Users, User } from './routes/routes';
+import { Entity, IEntity } from './routes/routes';
 import url from 'url';
 
 config();
 const port = process.env.PORT || 3000;
-const users = new Users();
+const users = new Entity();
 
 const server = http.createServer(
 	async (req: IncomingMessageWithBody<any>, res) => {
-		await json<User>(req, res);
+		await json<IEntity>(req, res);
 		if (req.method === 'GET' && req.url === '/users') {
 			users.list(req, res);
 		}

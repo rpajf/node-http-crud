@@ -1,13 +1,11 @@
 import { readUserFromFile, writeUsersToFile } from '../utils/fileFunctions';
 import http from 'http';
 import { IncomingMessageWithBody} from '../middlewares/json';
-export interface User {
-	id?: number;
-	name: string;
-	password: string;
+export interface IEntity {
+	[key: string]: unknown
 }
-export class Users {
-	constructor(public users: User[] = []) {
+export class Entity {
+	constructor(public entities: IEntity[] = []) {
 		console.log('initialized');
 		this.initUsersOnFile();
 	}
@@ -21,31 +19,44 @@ export class Users {
 		return id;
 	}
 
-	async create(user: User) {
+	async create(entity: IEntity) {
 
-		const newUser  = {id: this.generateRandomId(), ...user}
-		this.users.push(newUser);
+		const newEntity  = {id: this.generateRandomId(), ...entity}
+		this.entities.push(newEntity);
 		this.persist();
 	
 	}
 	list(req: http.IncomingMessage, res: http.ServerResponse) {
 		
-		res.end(JSON.stringify(this.users));
+		res.end(JSON.stringify(this.entities));
 	}
-	edit(id: number, data: User) {
+	edit(id: number, data: IEntity) {
 		const { name, password } = data;
 
-		const userTofind = this.users.findIndex((user) => user.id === id);
-		if (userTofind === -1) {
+		const entityToFind = this.entities.findIndex((user) => user.id === id);
+		if (entityToFind === -1) {
 			throw new Error('User not found');
 		}
 		if (name && password) {
-			return (this.users[userTofind] = { id, ...{ name, password } });
+			return (this.entities[entityToFind] = { id, ...{ name, password } });
 		} else {
 			throw new Error('must inform all fields');
 		}
 	}
+	// delete(id: number, data: IEntity) {
+	// 	const { name, password } = data;
+
+	// 	const userTofind = this.entities.findIndex((user) => user.id === id);
+	// 	if (userTofind === -1) {
+	// 		throw new Error('User not found');
+	// 	}
+	// 	if (name && password) {
+	// 		return (this.entities[entityToFind] = { id, ...{ name, password } });
+	// 	} else {
+	// 		throw new Error('must inform all fields');
+	// 	}
+	// }
 	persist() {
-		writeUsersToFile(this.users);
+		writeUsersToFile(this.entities);
 	}
 }
