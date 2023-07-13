@@ -1,5 +1,6 @@
 import { readUserFromFile, writeUsersToFile } from '../utils/fileFunctions';
-
+import http from 'http';
+import { IncomingMessageWithBody} from '../middlewares/json';
 export interface User {
 	id?: number;
 	name: string;
@@ -7,6 +8,7 @@ export interface User {
 }
 export class Users {
 	constructor(public users: User[] = []) {
+		console.log('initialized');
 		this.initUsersOnFile();
 	}
 
@@ -18,12 +20,17 @@ export class Users {
 		const id = Math.floor(Math.random() * 10) + 1;
 		return id;
 	}
-	push(req) {
-		const { name, password } = req;
-		const user = { id: this.generateRandomId(), name, password };
-		this.users.push(user);
+
+	async create(user: User) {
+
+		const newUser  = {id: this.generateRandomId(), ...user}
+		this.users.push(newUser);
 		this.persist();
-		return this.users;
+	
+	}
+	list(req: http.IncomingMessage, res: http.ServerResponse) {
+		
+		res.end(JSON.stringify(this.users));
 	}
 	edit(id: number, data: User) {
 		const { name, password } = data;
