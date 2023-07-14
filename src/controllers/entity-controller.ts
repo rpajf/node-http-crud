@@ -4,9 +4,7 @@ import http from 'http';
 
 export class Entity<T extends IEntity> {
 	// can get any additional types but required at least
-	constructor(
-		public entities: T[] = [] // private entityPersister: IEntityPersistor,
-	) {
+	constructor(public entities: T[] = []) {
 		this.initEntities();
 	}
 
@@ -27,5 +25,18 @@ export class Entity<T extends IEntity> {
 	}
 	async persist() {
 		await writeUsersToFile(this.entities);
+	}
+	async edit(id: number, newEntityData: Partial<T>) {
+		const entityToFindIndex = this.entities.findIndex(
+			(newEntity) => newEntity.id === id
+		);
+		if (entityToFindIndex === -1) {
+			throw new Error('Entity not found');
+		}
+		this.entities[entityToFindIndex] = {
+			...this.entities[entityToFindIndex],
+			...newEntityData,
+		};
+		await this.persist();
 	}
 }

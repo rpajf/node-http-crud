@@ -1,11 +1,12 @@
 import { Entity } from '../controllers/entity-controller';
 import { IncomingMessageWithBody } from '../middlewares/json';
+import { buildRouteParams } from '../utils/buildRouteParams';
 import { IEntity } from '../types/entity';
 import http from 'http';
 
 interface RoutesMethods {
 	method: string;
-	path: string;
+	path: RegExp;
 	handler: (
 		req: IncomingMessageWithBody<any>,
 		res: http.ServerResponse
@@ -19,10 +20,10 @@ export const routes: RoutesMethods[] = [
 			const { name, password } = req.body;
 			const user = { name, password };
 			await users.create(user);
-			res.writeHead(200, { 'Content-Type': 'application/json' });
-			res.end('user added');
+			res.writeHead(200);
+			res.end('Created user');
 		},
-		path: '/users',
+		path: buildRouteParams('/users'),
 	},
 	{
 		method: 'GET',
@@ -30,6 +31,34 @@ export const routes: RoutesMethods[] = [
 			const allUsers = users.list();
 			res.end(JSON.stringify(allUsers));
 		},
-		path: '/users',
+		path: buildRouteParams('/users'),
+	},
+	{
+		method: 'PUT',
+		handler: async (req, res) => {
+
+			const {id} = req.params
+			const userTofindIndex = Number(id!.replace(/\D/g, ''));
+			console.log( 'params from req',req.params)
+
+			if (!userTofindIndex) {
+
+				res.writeHead(404);
+
+				res.end(JSON.stringify({ message: 'Bad request' }));
+			} else {
+				const { name, password } = req.body;
+				const newUserData = { name, password };
+				try {
+					console.log('here');
+					users.edit(userTofindIndex, newUserData);
+					res.end('Edited user');
+
+				} catch (error) {
+					console.log(error);
+				}
+			}
+		},
+		path: buildRouteParams('/users/:id'),
 	},
 ];
