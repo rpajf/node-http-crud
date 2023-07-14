@@ -1,51 +1,64 @@
-import { readUserFromFile, writeUsersToFile } from '../utils/fileFunctions';
+import { Entity } from '../controllers/entity-controller';
+import { IncomingMessageWithBody } from '../middlewares/json';
+import { buildRouteParams } from '../utils/buildRouteParams';
+import { IEntity } from '../types/entity';
 import http from 'http';
-import { IncomingMessageWithBody} from '../middlewares/json';
-export interface User {
-	id?: number;
-	name: string;
-	password: string;
+
+interface RoutesMethods {
+	method: string;
+	path: RegExp;
+	handler: (
+		req: IncomingMessageWithBody<any>,
+		res: http.ServerResponse
+	) => Promise<void>;
 }
-export class Users {
-	constructor(public users: User[] = []) {
-		console.log('initialized');
-		this.initUsersOnFile();
-	}
+const users = new Entity<IEntity>([]);
+export const routes: RoutesMethods[] = [
+	{
+		method: 'POST',
+		handler: async (req, res) => {
+			const { name, password } = req.body;
+			const user = { name, password };
+			await users.create(user);
+			res.writeHead(200);
+			res.end('Created user');
+		},
+		path: buildRouteParams('/users'),
+	},
+	{
+		method: 'GET',
+		handler: async (req, res) => {
+			const allUsers = users.list();
+			res.end(JSON.stringify(allUsers));
+		},
+		path: buildRouteParams('/users'),
+	},
+	{
+		method: 'PUT',
+		handler: async (req, res) => {
 
-	async initUsersOnFile() {
-		await readUserFromFile();
-	}
+			const {id} = req.params
+			const userTofindIndex = Number(id!.replace(/\D/g, ''));
+			console.log( 'params from req',req.params)
 
-	generateRandomId() {
-		const id = Math.floor(Math.random() * 10) + 1;
-		return id;
-	}
+			if (!userTofindIndex) {
 
-	async create(user: User) {
+				res.writeHead(404);
 
-		const newUser  = {id: this.generateRandomId(), ...user}
-		this.users.push(newUser);
-		this.persist();
-	
-	}
-	list(req: http.IncomingMessage, res: http.ServerResponse) {
-		
-		res.end(JSON.stringify(this.users));
-	}
-	edit(id: number, data: User) {
-		const { name, password } = data;
+				res.end(JSON.stringify({ message: 'Bad request' }));
+			} else {
+				const { name, password } = req.body;
+				const newUserData = { name, password };
+				try {
+					console.log('here');
+					users.edit(userTofindIndex, newUserData);
+					res.end('Edited user');
 
-		const userTofind = this.users.findIndex((user) => user.id === id);
-		if (userTofind === -1) {
-			throw new Error('User not found');
-		}
-		if (name && password) {
-			return (this.users[userTofind] = { id, ...{ name, password } });
-		} else {
-			throw new Error('must inform all fields');
-		}
-	}
-	persist() {
-		writeUsersToFile(this.users);
-	}
-}
+				} catch (error) {
+					console.log(error);
+				}
+			}
+		},
+		path: buildRouteParams('/users/:id'),
+	},
+];

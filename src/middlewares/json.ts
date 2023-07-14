@@ -4,6 +4,8 @@
 import http from 'http';
 
 export interface IncomingMessageWithBody<T> extends http.IncomingMessage {
+
+  params?: { [key: string]: string };
   body?: T | null;
 }
 
@@ -12,7 +14,6 @@ export async function json<T>(req:IncomingMessageWithBody<T>, res: http.ServerRe
   for await (const chunk of req){
     buffers.push(chunk)
   } 
-
   try {
     req.body = JSON.parse(Buffer.concat(buffers).toString()) 
     

@@ -1,46 +1,32 @@
 import http from 'http';
 import { config } from 'dotenv';
 import { json, IncomingMessageWithBody } from './middlewares/json';
-import { Users, User } from './routes/routes';
-import url from 'url';
+import { routes } from './routes/routes';
+import { IEntity } from './types/entity';
 
 config();
 const port = process.env.PORT || 3000;
-const users = new Users();
 
 const server = http.createServer(
 	async (req: IncomingMessageWithBody<any>, res) => {
-		await json<User>(req, res);
-		if (req.method === 'GET' && req.url === '/users') {
-			users.list(req, res);
+		await json<IEntity>(req, res);
+		const { method, url } = req;
+
+		const route = routes.find(
+			(route) => route.method === method && route.path.test(url!)
+		);
+		if (route && req.url) {
+			const routeParams = req.url.match(route.path);
+			if (routeParams !== null) {
+				const { groups } = routeParams;
+				req.params = groups;
 		}
-
-		if (req.method === 'POST' && req.url === '/users') {
-			const { name, password } = req.body;
-			const user = { name, password };
-			users.create(user);
-			res.writeHead(200, { 'Content-Type': 'application/json' });
-			res.end('user added');
-		}
-		if (req.method === 'PUT') {
-			const parsedUrl = url.parse(req.url!, true).pathname;
-			const userTofindIndex = Number(parsedUrl!.replace(/\D/g, ''));
-
-			if (!userTofindIndex) {
-				res.writeHead(404);
-
-				res.end({ message: 'Bad request' });
-			} else {
-				let body = '';
-				req.on('data', (chunk) => {
-					body += chunk.toString();
-				});
-				req.on('end', () => {
-					const newUserData = JSON.parse(body);
-					users.edit(userTofindIndex, newUserData);
-					res.writeHead(200, { 'Content-Type': 'application/json' });
-					res.end('user edited');
-				});
+			// const { groups } = routeParams;
+			// req.params = groups;
+			try {
+				route.handler(req, res);
+			} catch (error) {
+				console.log('error', error);
 			}
 		}
 	}
