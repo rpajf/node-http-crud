@@ -1,12 +1,17 @@
 import http from 'http';
 import { config } from 'dotenv';
 import { json, IncomingMessageWithBody } from './middlewares/json';
-import { Entity, IEntity } from './routes/routes';
+// import { Entity } from './routes/routes';
+import { Entity } from './controllers/entity-controller';
+import { IIdGenerator } from './types/entity';
+import { IEntityPersistor } from './types/entity';
+import { IEntity } from './types/entity';
 import url from 'url';
 
 config();
 const port = process.env.PORT || 3000;
-const users = new Entity();
+// const entityPersistor = new EntityPersistor();
+const users = new Entity<IEntity>([]);
 
 const server = http.createServer(
 	async (req: IncomingMessageWithBody<any>, res) => {
@@ -31,16 +36,13 @@ const server = http.createServer(
 
 				res.end({ message: 'Bad request' });
 			} else {
-				let body = '';
-				req.on('data', (chunk) => {
-					body += chunk.toString();
-				});
-				req.on('end', () => {
-					const newUserData = JSON.parse(body);
+				const { name, password } = req.body;
+				const newUserData = { name, password };
+				try {
 					users.edit(userTofindIndex, newUserData);
-					res.writeHead(200, { 'Content-Type': 'application/json' });
-					res.end('user edited');
-				});
+				} catch (error) {
+					console.log(error);
+				}
 			}
 		}
 	}

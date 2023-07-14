@@ -2,8 +2,7 @@ import fs from 'fs/promises';
 
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Entity, IEntity } from '../routes/routes';
-
+import { IEntity } from '../types/entity';
 //work with native __filename and __dirname in node
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,7 +19,7 @@ export async function readUserFromFile() {
 	}
 }
 
-export function writeUsersToFile(entities: IEntity[]): void {
+export async function writeUsersToFile<T extends IEntity>(entities: T[]): Promise<void> {
 	fs.writeFile(dataBasePath, JSON.stringify(entities)).catch((error) => {
 		console.error('Error writing user data:', error);
 	});
