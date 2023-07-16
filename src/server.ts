@@ -21,8 +21,6 @@ const server = http.createServer(
 				const { groups } = routeParams;
 				req.params = groups;
 		}
-			// const { groups } = routeParams;
-			// req.params = groups;
 			try {
 				route.handler(req, res);
 			} catch (error) {

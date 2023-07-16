@@ -1,6 +1,3 @@
-
-//middelware -> intercep the req 
-// params are req and res
 import http from 'http';
 
 export interface IncomingMessageWithBody<T> extends http.IncomingMessage {

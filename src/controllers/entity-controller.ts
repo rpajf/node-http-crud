@@ -39,4 +39,15 @@ export class Entity<T extends IEntity> {
 		};
 		await this.persist();
 	}
+	async delete(id: number) {
+		const entityToFindIndex = this.entities.findIndex(
+			(newEntity) => newEntity.id === id
+		);
+		if (entityToFindIndex === -1) {
+			throw new Error('Entity not found');
+		}
+		this.entities.splice(entityToFindIndex, 1)
+		console.log(this.entities)
+		await this.persist();
+	}
 }
